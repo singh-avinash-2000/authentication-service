@@ -4,6 +4,7 @@ import prisma from '../config/prisma.config';
 import { ResponseStructure } from '../types/response.types';
 import { JWTConfig } from '../config/jwt.config';
 import { verifyPassword } from '../config/argon.config';
+import { hashPassword } from '../config/argon.config';
 
 export const signInWithEmailPassword = expressAsyncHandler(async (req: Request, res: Response) => {
 	let responseObject: ResponseStructure = {
@@ -57,7 +58,15 @@ export const signUpWithEmailPassword = expressAsyncHandler(async (req: Request, 
 		return res.error(responseObject);
 	}
 
-	let result = await prisma.user.create(requestBody);
+	const hashedPassword = await hashPassword(requestBody.password);
+	let result = await prisma.user.create({
+		data: {
+			first_name: '',
+			last_name: '',
+			email: requestBody.email,
+			password_hash: hashedPassword,
+		},
+	});
 
 	responseObject.message = 'You have successfully registered!';
 
